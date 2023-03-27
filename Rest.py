@@ -8,6 +8,7 @@ from record import record
 class MyController(object):
     wrp = WrapperDB()
 
+
     @cherrypy.tools.json_out() #NOTA: ricordarsi di aggiungere questo decoratore se vogliamo l'output in formato json!!!
     def GET(self, id=-1):
         dischi = self.wrp.elencoDischi(as_dict=True)
@@ -16,7 +17,7 @@ class MyController(object):
             return dischi
         else:
             #return self.dischi[int(id)]
-            disco = [d for d in dischi if d["id"] == int(id)]
+            disco = [d for d in dischi if d["Id"] == int(id)]
             if (len(disco) == 1):
                 return (disco[0])
             else:
@@ -31,7 +32,13 @@ class MyController(object):
         #return {}
         data = cherrypy.request.json
         disco = json.loads(data, object_hook=record)
-        res = self.wrp.inserisciDiscoSP(disco)
+        print("***********************")
+        print("***********************")
+        print(data)
+        print(disco)
+        print("***********************")
+        print("***********************")
+        res = self.wrp.inserisciDiscoSP((disco["Artist"], disco["Title"], disco["Year"], disco["Company"], ))
         return res
 
 
@@ -42,7 +49,7 @@ class MyController(object):
         disco = json.loads(data, object_hook=record)
         res = self.wrp.aggiornaDisco(id)
         if (bool(res)):
-            return id;
+            return id
         else:
             cherrypy.response.status = 404
             return {} 
@@ -52,7 +59,7 @@ class MyController(object):
     def DELETE(self, id=-1):
         index = -1
         for d in range(0, len(self.dischi)) :
-            if self.dischi[d]["id"] == int(id):
+            if self.dischi[d]["Id"] == int(id):
                 index = d
                 break
         if index != -1:

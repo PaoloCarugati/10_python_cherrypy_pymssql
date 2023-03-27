@@ -44,6 +44,30 @@ def callPOST(disco):
     print("")
 
 
+def callPUT(id, disco):
+    getUrl = url + "/" + str(id)
+    print("***** PUT *****")
+    print("url: " + getUrl)
+
+    headers={
+        'Content-type':'application/json', 
+        'Accept':'application/json'
+    }
+
+    response = requests.put(
+        getUrl, 
+        json=disco,
+        headers=headers
+    )
+    print("status code: " + str(response.status_code))
+    #print("response content:")
+    #print(response.content)
+    print("***************")
+    print("")
+    print("")
+    print("")
+
+
 def callDELETE(id):
     print("***** DELETE *****")
     deleteUrl = url + "/" + str(id)
@@ -63,21 +87,33 @@ url = 'http://127.0.0.1:8080/dischi'
 #print("url: " + url)
 
 
-callGET()
+#singolo disco
+#callGET(1)
 
-"""
-callGET(1)
+#lista
+#callGET()
+
+
 
 disco = {
-            "title": "Duke",
-            "artist": "Genesis",
-            "year": 1980,
-            "company": "A&M"      
+            "Title": "Duke",
+            "Artist": "Genesis",
+            "Year": 1981,
+            "Company": "A&M"      
         }
+#print(disco)
 
-callGET()
+#inserimento nuovo disco
 callPOST(disco)
-callGET()
+
+#callGET()
+
+#modifica disco
+disco["Year"] = 1980
+
+
+"""
+#eliminazione disco
 callDELETE(5)
 callGET()
 """

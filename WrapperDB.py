@@ -1,5 +1,5 @@
 #classe wrapper
-#funzioni di connetti e di disconnetti + varie
+#funzioni di connetti e di disconnetti + varie per operazioni CRUD
 #le variabili di istanza sono le 4 variabili per la connetti
 #invece la connetti è una variabile di classe 
 
@@ -12,10 +12,10 @@ class WrapperDB:
     
     conn = 0
     
-    #def __init__(self, server="192.168.40.16\\SQLEXPRESS", user="CRD2122",
+    #def __init__(self, server="PCPAOLO\SQLEXPRESS", user="sa", password="Password1!", database="5DINF", port="1433"):
+    def __init__(self, server="192.168.40.16\\SQLEXPRESS", user="CRD2122",
     #def __init__(self, server="213.140.22.237\\SQLEXPRESS", user="CRD2122",
-    #           password="xxx123##", database="CRD2122"):
-    def __init__(self, server="PCPAOLO\SQLEXPRESS", user="sa", password="Password1!", database="5DINF", port="1433"):
+               password="xxx123##", database="CRD2122"):
         self._server=server
         self._user=user
         self._password=password
@@ -29,9 +29,6 @@ class WrapperDB:
                         password = self._password, database = self._database)
             #print(f"\nConnessione effettuata! (DB: {self._database})\n")
             return WrapperDB.conn	
-        #except:
-        #    print(f"\nConnessione NON riuscita! (DB: {self._database})\n")
-        #    return 0
         except _mssql.MssqlDriverException:
             print("A MSSQLDriverException has been caught.")
         except _mssql.MssqlDatabaseException as e:
@@ -40,20 +37,25 @@ class WrapperDB:
             print('Severity = ',e.severity)
             print('State = ',e.state)
             print('Message = ',e.message)  
-        except Exception as e: 
-            print("********** EXCEPTION **********")
-            print(e)     
-            print("*******************************")     
+        except Exception as err: 
+            print("********** ERRORE [connetti] **********")
+            print(str(err))     
+            print("***************************************")     
+        return 
 
 
     def disconnetti(self, co):
         #disconnessione	
         try:
             co.close()
-            #print(f"\nCHIUSURA connessione! (DB: {self._database})\n") 
-        except:
-            print(f"\nCHIUSURA connessione NON riuscita! (DB: {self._database})\n")
-            return 0
+        #    print(f"\nCHIUSURA connessione! (DB: {self._database})\n") 
+        #except:
+        #    print(f"\nCHIUSURA connessione NON riuscita! (DB: {self._database})\n")
+        #    return 0
+        except Exception as err: 
+            print("********** ERRORE [disconnetti] **********")
+            print(str(err))     
+            print("******************************************")     
         
 
     def elencoDischi(self, as_dict = False):
@@ -66,9 +68,10 @@ class WrapperDB:
             sql = "SELECT Id, Artist, Title, [Year], Company FROM PC_Records"
             cur.execute(sql)
             lista = cur.fetchall()
-        except:
-            err = "Houston abbiamo un problema..."
-            print(f"[elencoPost] {err}")
+        except Exception as err: 
+            print("********** ERRORE [elencoDischi] **********")
+            print(str(err))     
+            print("*******************************************")   
         self.disconnetti(conn)
         return lista
 
@@ -79,108 +82,128 @@ class WrapperDB:
         conn = self.connetti()
         try:
             cursore = conn.cursor(as_dict = True)
+            
             sql = f"""
                 SELECT Id, Artist, Title, [Year], Company 
                 FROM PC_Records 
                 WHERE id = {id}   
                 """
             cursore.execute(sql)
+
+            #sql = """
+            #    SELECT Id, Artist, Title, [Year], Company 
+            #    FROM PC_Records 
+            #    WHERE id = %d   
+            #    """
+            #cursore.execute(sql, (id, ))
             ret = cursore.fetchone()
-        except:
-            err = "Houston abbiamo un problema..."
-            print(f"[singoloPost] {err}")
+        except Exception as err: 
+            print("********** ERRORE [singoloDisco] **********")
+            print(str(err))     
+            print("*******************************************")  
         self.disconnetti(conn)
         return ret    
 
     
     def inserisciDisco(self, parametri):
-        #inserisce un nuovo post
+        #inserisce un nuovo post; restituisce un booleano con l'esito dell'operazione
         #parametri: tupla con i valori dei parametri -> (artist, title, year, company)
+        conn = self.connetti() 
+        ret = True
         try:
-            c = self.connetti() 
-            cursore = c.cursor()
+            cursore = conn.cursor()
             sql = "INSERT INTO PC_Records (Artist, Title, Year, Company) VALUES (%s , %s, %d, %s)"
             cursore.execute(sql, parametri)
-            c.commit()
+            conn.commit()
             #print("INSERIMENTO DISCO AVVENUTO")
-            self.disconnetti(c)
-            return True            
-        except:
-            #print("\INSERIMENTO DISCO/i: Si sono verificati degli errori!")
-            self.disconnetti(c)
-            return False
+        except Exception as err: 
+            print("********** ERRORE [inserisciDisco] **********")
+            print(str(err))     
+            print("*********************************************")  
+            ret = False
+        self.disconnetti(conn)
+        return ret
 
 
     def inserisciDiscoSP(self, parametri):
-        #inserisce un nuovo post
+        #inserisce un nuovo post chiamando la stored procedure PC_InserisciDisco restituendo il valore
+        #di ritorno (che corrisponde l'id del disco inserito); se si verifica un errore restituisce -1
         #parametri: tupla con i valori dei parametri -> (artist, title, year, company)
+        conn = self.connetti() 
+        ret = -1
         try:
             #dichiaro id come valore di output per la SP
             id = output(int)
             #aggiungo id ai parametri
             parametri = parametri + (id,)
-            c = self.connetti() 
-            cursore = c.cursor()
+            cursore = conn.cursor()
             res = cursore.callproc('dbo.PC_InserisciDisco', parametri)
-            c.commit()
+            conn.commit()
             #print("INSERIMENTO DISCO AVVENUTO")
             #return True            
-            return res[4]
+            ret = res[4]
         except _mssql.MssqlDatabaseException as e:
             print("A MSSQLDatabaseException has been caught.")
             print('Number = ',e.number)
             print('Severity = ',e.severity)
             print('State = ',e.state)
             print('Message = ',e.message)
-            return -1
+            ret = -1
         except Exception as err:
             #print("\INSERIMENTO DISCO/i: Si sono verificati degli errori!")
-            print(str(err))
-            self.disconnetti(c)
-            #return False
-            return -1
+            print("********** ERRORE [inserisciDiscoSP] **********")
+            print(str(err))     
+            print("***********************************************")  
+            ret = -1
+        self.disconnetti(conn)
+        return ret
 
 
     def aggiornaDisco(self, id, parametri):
-        #modifica un post esistente
+        #modifica un disco esistente; restituisce un booleano con l'esito dell'operazione
         #id: id del disco
         #parametri: tupla con i valori dei parametri -> (artist, title, year, company)
+        ret = True
+        conn = self.connetti() 
         try:
             #aggiungo id ai parametri
             parametri = parametri + (id,)
-            c = self.connetti() 
-            cursore = c.cursor()
+            cursore = conn.cursor()
             sql = "UPDATE PC_Records SET Artist = %s, Title = %s, Year = %d, Company = %s WHERE ID = %d"
             cursore.execute(sql, parametri)
-            c.commit()
+            conn.commit()
             #print("AGGIORNAMENTO DISCO AVVENUTO")
-            ret = True
+            #se l'id passato non esiste restituisco comunque False
             if (cursore.rowcount < 1):
                 ret = False
-            self.disconnetti(c)
-            return ret            
-        except:
+        except Exception as err:
             #print("\AGGIORNAMENTO DISCO/i: Si sono verificati degli errori!")
-            self.disconnetti(c)
-            return False
+            print("********** ERRORE [aggiornaDisco] **********")
+            print(str(err))     
+            print("********************************************")  
+            ret = False
+        self.disconnetti(conn)
+        return ret
 
 
     def eliminaDisco(self, id):
-        #elimina un post
+        #elimina un post; restituisce un booleano con l'esito dell'operazione
+        ret = True
+        conn = self.connetti() 
         try:
-            c = self.connetti() 
-            cursore = c.cursor()
+            cursore = conn.cursor()
             sql = "DELETE PC_Records WHERE id = %d"
             cursore.execute(sql, id)
-            c.commit()
-            #print("ELIMINA DISCO AVVENUTO")
-            self.disconnetti(c)
-            return True            
-            
-        except:
+            conn.commit()
+            #print("ELIMINA DISCO AVVENUTO")              
+        except Exception as err:
             #print("\ELIMINA DISCO/i: Si sono verificati degli errori!")
-            self.disconnetti(c)
-            return False
+            print("********** ERRORE [eliminaDisco] **********")
+            print(str(err))     
+            print("*******************************************")              
+            ret = False
+        self.disconnetti(conn)
+        return ret
 
     
 
