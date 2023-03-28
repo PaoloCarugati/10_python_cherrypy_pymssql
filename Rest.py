@@ -16,7 +16,6 @@ class MyController(object):
         if (int(id) == -1):
             return dischi
         else:
-            #return self.dischi[int(id)]
             disco = [d for d in dischi if d["Id"] == int(id)]
             if (len(disco) == 1):
                 return (disco[0])
@@ -29,8 +28,6 @@ class MyController(object):
     @cherrypy.tools.json_out()
     def POST(self):
         disco = cherrypy.request.json
-        #disco = json.loads(data, object_hook=record)
-        #disco = json.parse(disco)
         res = self.wrp.inserisciDiscoSP((disco["Artist"], disco["Title"], disco["Year"], disco["Company"]))
         if (res != -1):
             return { "Id": res }
@@ -39,12 +36,12 @@ class MyController(object):
             return {}
 
 
+    @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     #@cherrypy.tools.accept(media='text/plain')
     def PUT(self, id=-1):
-        data = cherrypy.request.json
-        disco = json.loads(data, object_hook=record)
-        res = self.wrp.aggiornaDisco(id)
+        disco = cherrypy.request.json
+        res = self.wrp.aggiornaDisco(id, (disco["Artist"], disco["Title"], disco["Year"], disco["Company"]))
         if (bool(res)):
             return id
         else:
@@ -67,7 +64,6 @@ conf = {
         'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
         'tools.sessions.on': True,
         'tools.response_headers.on': True,
-        #'tools.response_headers.headers': [('Content-Type', 'application/json')]
         #devo aggiungere l'header "Access-Control-Allow-Origin" per abilitare le richieste da un dominio differente
         'tools.response_headers.headers': [('Content-Type', 'application/json'), ('Access-Control-Allow-Origin', '*')]
     }

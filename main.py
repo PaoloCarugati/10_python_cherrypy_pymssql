@@ -36,8 +36,8 @@ def callPOST(disco):
         headers=headers
     )
     print("status code: " + str(response.status_code))
-    #print("response content:")
-    #print(response.content)
+    print("response content:")
+    print(response.json())
     print("***************")
     print("")
     print("")
@@ -89,12 +89,15 @@ url = 'http://127.0.0.1:8080/dischi'
 
 #singolo disco
 #callGET(1)
+#####################
+
 
 #lista dischi
-callGET()
+#callGET()
+#####################
 
 
-
+#inserimento nuovo disco
 disco = {
             "Title": "Duke",
             "Artist": "Genesis",
@@ -102,18 +105,19 @@ disco = {
             "Company": "A&M"      
         }
 #print(disco)
+callPOST(disco)
+callGET()
+#####################
 
-#inserimento nuovo disco
-#callPOST(disco)
-
-#callGET()
 
 #modifica disco
-disco["Year"] = 1980
+#disco["Year"] = 1980
+#callPUT(10, disco)
+#callGET()
+#####################
 
 
-"""
 #eliminazione disco
-callDELETE(5)
+callDELETE(13)
 callGET()
-"""
+#####################
