@@ -45,9 +45,9 @@ def callPOST(disco):
 
 
 def callPUT(id, disco):
-    getUrl = url + "/" + str(id)
+    putUrl = url + "/" + str(id)
     print("***** PUT *****")
-    print("url: " + getUrl)
+    print("url: " + putUrl)
 
     headers={
         'Content-type':'application/json', 
@@ -55,7 +55,7 @@ def callPUT(id, disco):
     }
 
     response = requests.put(
-        getUrl, 
+        putUrl, 
         json=disco,
         headers=headers
     )
@@ -90,8 +90,8 @@ url = 'http://127.0.0.1:8080/dischi'
 #singolo disco
 #callGET(1)
 
-#lista
-#callGET()
+#lista dischi
+callGET()
 
 
 
@@ -104,7 +104,7 @@ disco = {
 #print(disco)
 
 #inserimento nuovo disco
-callPOST(disco)
+#callPOST(disco)
 
 #callGET()
 

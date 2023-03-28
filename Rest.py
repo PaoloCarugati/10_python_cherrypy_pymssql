@@ -28,18 +28,15 @@ class MyController(object):
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
     def POST(self):
-        #self.dischi.append(data)
-        #return {}
-        data = cherrypy.request.json
-        disco = json.loads(data, object_hook=record)
-        print("***********************")
-        print("***********************")
-        print(data)
-        print(disco)
-        print("***********************")
-        print("***********************")
-        res = self.wrp.inserisciDiscoSP((disco["Artist"], disco["Title"], disco["Year"], disco["Company"], ))
-        return res
+        disco = cherrypy.request.json
+        #disco = json.loads(data, object_hook=record)
+        #disco = json.parse(disco)
+        res = self.wrp.inserisciDiscoSP((disco["Artist"], disco["Title"], disco["Year"], disco["Company"]))
+        if (res != -1):
+            return { "Id": res }
+        else: 
+            cherrypy.response.status = 500
+            return {}
 
 
     @cherrypy.tools.json_out()
@@ -52,20 +49,17 @@ class MyController(object):
             return id
         else:
             cherrypy.response.status = 404
-            return {} 
+            return { "Id": id } 
             
 
     @cherrypy.tools.json_out()
     def DELETE(self, id=-1):
-        index = -1
-        for d in range(0, len(self.dischi)) :
-            if self.dischi[d]["Id"] == int(id):
-                index = d
-                break
-        if index != -1:
-            self.dischi.pop(index)
-        return 0
-
+        res = self.wrp.eliminaDisco(id)
+        if (res == True):
+            return {}
+        else:
+            cherrypy.response.status = 404
+            return {}
 
 #if __name__ == '__main__':
 conf = {
